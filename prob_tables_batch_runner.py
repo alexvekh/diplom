@@ -1292,10 +1292,6 @@ def table_multi_metric_by_ticker_mean(
     cols = ["ticker"] + [m for m in metrics if m in mean_df.columns]
     return mean_df[cols].reset_index(drop=True)
 
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-
 
 def plot_probability_calibration(
     pred_df: pd.DataFrame,

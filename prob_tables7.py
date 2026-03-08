@@ -271,17 +271,17 @@ def prob_table_3class(bucket: pd.Series, y3: pd.Series, alpha: float = 1.0):
 
 def current_probs(tbl: pd.DataFrame, bucket_value):
     """
-    tbl: DataFrame with columns ['n','Decline','Sideways','Growth']
-    Returns: (p_series, n_int)
-    p_series index ['Decline','Sideways','Growth']
+    tbl: DataFrame с колонками ['n','Decline','Sideways','Growth']
+    Возвращает: (p_series, n_int)
+    p_series индекс ['Growth','Decline','Sideways']
     """
     if bucket_value in tbl.index:
         row = tbl.loc[bucket_value]
         n = int(row["n"])
-        p = row[["Decline", "Sideways", "Growth"]]
+        p = row[["Growth", "Decline", "Sideways"]]
         return p, n
-    return pd.Series({"Decline": np.nan, "Sideways": np.nan, "Growth": np.nan}), 0
-    
+    return pd.Series({"Growth": np.nan, "Decline": np.nan, "Sideways": np.nan}), 0
+
 def normalize_weights(w: dict, keys: list[str]) -> dict:
     out = {k: float(w.get(k, 1.0)) for k in keys}  # default 1.0 for missing
     s = sum(out.values())
@@ -297,18 +297,19 @@ def aggregate_weighted(comp: dict):
     return pd.Series(final, index=["Growth", "Decline", "Sideways"])
 
 def aggregate_log_odds(comp: dict, base_rate):
+    
     keys = ["dist","rsi","rsi_regime","macd","vol","trend","market","mom","ma200","volpct","spy_mom"]
 
     scores = np.zeros(3)
 
     for k in keys:
-        p = comp[k].values   # [D,S,G]
+        p = comp[k].values
         scores += WEIGHTS[k] * np.log(p / base_rate)
 
-    exp = np.exp(scores - np.max(scores))
+    exp = np.exp(scores)
     probs = exp / exp.sum()
 
-    return pd.Series(probs, index=["Decline","Sideways","Growth"])
+    return pd.Series(probs, index=["Growth","Decline","Sideways"])
 
 # ================= PIPELINE =================
 
@@ -560,7 +561,7 @@ if __name__ == "__main__":
 
     # final = aggregate_weighted(comp)
     # base_rate = np.array([0.57, 0.31, 0.12])
-    # base_rate = s["target_3"].value_counts(normalize=True).reindex([0,1,2]).fillna(1/3).values
+    # base_rate = s["target_3"].value_counts(normalize=True).reindex([2,0,1]).values
     base_rate = [1/3, 1/3, 1/3]
     final = aggregate_log_odds(comp, base_rate)
 

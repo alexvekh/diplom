@@ -20,10 +20,10 @@ import prob_tables as pt
 
 TICKERS = [
     "AAPL",
-    "MSFT",
-    "GOOGL",
-    "AMD",
-    "DIS"
+    # "MSFT",
+    # "GOOGL",
+    # "AMD",
+    # "DIS"
 ]
 
 MARKET = "SPY"
@@ -37,7 +37,7 @@ PERIODS = [
 
 # Parameter grid to test. Add/remove values as needed.
 PARAM_GRID = {
-    "horizon": [10, 20, 30],
+    "horizon": [30],
     "theta_mode": ["atr", "vol"],
     "theta_k": [0.25, 0.40],
     "lookback_high": [252],
@@ -62,7 +62,18 @@ WEIGHTS = {
 TRAIN_FRAC = 0.80
 BASE_RATE_MODE = "empirical"  # "empirical" or "uniform"
 SAVE_ROW_LEVEL = True
+
 OUTPUT_DIR = Path("artifacts/prob_tables_batch")
+
+SUMMARY_CSV = "summary_results.csv"
+ROW_CSV = "row_level_predictions.csv"
+SUMMARY_PARQUET = "summary_results.parquet"
+ROW_PARQUET = "row_level_predictions.parquet"
+
+SUMMARY_CSV_PATH = OUTPUT_DIR / SUMMARY_CSV
+ROW_CSV_PATH = OUTPUT_DIR / ROW_CSV
+SUMMARY_PARQUET_PATH = OUTPUT_DIR / SUMMARY_PARQUET
+ROW_PARQUET_PATH = OUTPUT_DIR / ROW_PARQUET
 
 
 # ============================================================================
@@ -101,9 +112,9 @@ def brier_multiclass(y_true: np.ndarray, proba_dsg: np.ndarray) -> float:
 
 
 def load_row_predictions():
-    return pd.read_csv("artifacts/prob_tables_batch/row_level_predictions.csv")
+    return pd.read_csv(ROW_CSV_PATH)
 def load_sum_result():
-    return pd.read_csv("artifacts/prob_tables_batch/summary_result.csv")
+    return pd.read_csv(SUMMARY_CSV_PATH)
     
 def get_base_rate(y: pd.Series, mode: str = "empirical") -> np.ndarray:
     if mode == "uniform":
@@ -865,7 +876,7 @@ def list_runs_for_ticker(
 
     Parameters
     ----------
-    csv_path : path to summary_results.csv
+    csv_path : SUMMARY_CSV_PATH
     ticker : e.g. "DIS"
     period_name : optional, e.g. "2020_now"
     sort_by : any column from summary CSV, e.g.
@@ -928,7 +939,7 @@ def list_runs_all_tickers(
 
     Parameters
     ----------
-    csv_path : path to summary_results.csv
+    csv_path : SUMMARY_CSV_PATH
     period_name : optional filter
     sort_by : column to sort by
     ascending : True for metrics like logloss
@@ -1025,7 +1036,7 @@ def plot_metric_by_ticker(
 
     Parameters
     ----------
-    csv_path : path to summary_results.csv
+    csv_path : SUMMARY_CSV_PATH
     metric : metric column, e.g.
              'logloss', 'accuracy', 'balanced_accuracy',
              'corr_p_growth_future_ret', 'corr_p_decline_future_ret'
@@ -1113,8 +1124,8 @@ def main() -> None:
                     )
 
     summary_df = pd.DataFrame(summary_rows)
-    summary_csv = OUTPUT_DIR / "summary_results.csv"
-    summary_parquet = OUTPUT_DIR / "summary_results.parquet"
+    summary_csv = SUMMARY_CSV_PATH
+    summary_parquet = SUMMARY_PARQUET_PATH
     summary_df.to_csv(summary_csv, index=False)
 
     try:
@@ -1133,8 +1144,8 @@ def main() -> None:
 
     if SAVE_ROW_LEVEL and row_level_frames:
         rows_df = pd.concat(row_level_frames, ignore_index=True)
-        rows_csv = OUTPUT_DIR / "row_level_predictions.csv"
-        rows_parquet = OUTPUT_DIR / "row_level_predictions.parquet"
+        rows_csv = ROW_CSV_PATH
+        rows_parquet = ROW_PARQUET_PATH
         rows_df.to_csv(rows_csv, index=False)
         try:
             rows_df.to_parquet(rows_parquet, index=False)
@@ -1423,17 +1434,17 @@ def plot_decile_return(
 if __name__ == "__main__":
     main()
 
-    # runs = list_runs_all_tickers(
-    #     OUTPUT_DIR / "summary_results.csv",
-    #     sort_by="corr_p_growth_future_ret",
-    #     ascending=False,
-    #     top_n=30,
-    # )
+    runs = list_runs_all_tickers(
+        SUMMARY_CSV_PATH,
+        sort_by="corr_p_growth_future_ret",
+        ascending=False,
+        top_n=30,
+    )
 
-    # print(runs.to_string(index=False))
+    print(runs.to_string(index=False))
 
     # runs = list_runs_for_ticker(
-    #     OUTPUT_DIR / "summary_results.csv",
+    #     SUMMARY_CSV_PATH",
     #     ticker="GOOGL",
     #     sort_by="logloss", #   accuracy  balanced_accuracy  corr_p_growth_future_ret  corr_p_decline_future_ret  corr_p_sideways_future_ret  mean_confidence  mean_margin
     #     ascending=True,  # False, якщо більша метрика краще.
@@ -1443,7 +1454,7 @@ if __name__ == "__main__":
     # print(runs.to_string(index=False))
 
     # plot_best_run_from_csv(
-    #     OUTPUT_DIR / "summary_results.csv",
+    #     SUMMARY_CSV_PATH",
     #     sort_by="logloss",  # sort_by="corr_p_growth_future_ret", "balanced_accuracy"
     #     ascending=True,
     #     output_subdir="best_run_charts_from_csv",

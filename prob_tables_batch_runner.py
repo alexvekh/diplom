@@ -100,6 +100,11 @@ def brier_multiclass(y_true: np.ndarray, proba_dsg: np.ndarray) -> float:
     return float(np.mean(np.sum((p - y_onehot) ** 2, axis=1)))
 
 
+def load_row_predictions():
+    return pd.read_csv("artifacts/prob_tables_batch/row_level_predictions.csv")
+def load_sum_result():
+    return pd.read_csv("artifacts/prob_tables_batch/summary_result.csv")
+    
 def get_base_rate(y: pd.Series, mode: str = "empirical") -> np.ndarray:
     if mode == "uniform":
         base = np.array([1 / 3, 1 / 3, 1 / 3], dtype=float)
@@ -787,7 +792,7 @@ def load_best_run_from_csv(
       best_ticker, best_period, best_params
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_sum_result()
 
     if "error" in df.columns:
         df = df[df["error"].isna() | (df["error"] == "")].copy()
@@ -876,7 +881,9 @@ def list_runs_for_ticker(
     pd.DataFrame
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_sum_result()
+
+
 
     if "error" in df.columns:
         df = df[df["error"].isna() | (df["error"] == "")].copy()
@@ -929,7 +936,7 @@ def list_runs_all_tickers(
     columns : optional subset of columns
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_sum_result()
 
     if "error" in df.columns:
         df = df[df["error"].isna() | (df["error"] == "")].copy()
@@ -973,7 +980,7 @@ def best_run_per_ticker(
     Returns best run per ticker.
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_sum_result()
 
     if "error" in df.columns:
         df = df[df["error"].isna() | (df["error"] == "")].copy()
@@ -1147,7 +1154,7 @@ def mean_run_per_ticker(
     Returns mean metric values per ticker across all runs.
     """
 
-    df = pd.read_csv(csv_path)
+    df = load_sum_result()
 
     if "error" in df.columns:
         df = df[df["error"].isna() | (df["error"] == "")].copy()
@@ -1293,6 +1300,8 @@ def table_multi_metric_by_ticker_mean(
     return mean_df[cols].reset_index(drop=True)
 
 
+
+
 def plot_probability_calibration(
     pred_df: pd.DataFrame,
     *,
@@ -1412,16 +1421,16 @@ def plot_decile_return(
     return stats
 
 if __name__ == "__main__":
-    # main()
+    main()
 
-    runs = list_runs_all_tickers(
-        OUTPUT_DIR / "summary_results.csv",
-        sort_by="corr_p_growth_future_ret",
-        ascending=False,
-        top_n=30,
-    )
+    # runs = list_runs_all_tickers(
+    #     OUTPUT_DIR / "summary_results.csv",
+    #     sort_by="corr_p_growth_future_ret",
+    #     ascending=False,
+    #     top_n=30,
+    # )
 
-    print(runs.to_string(index=False))
+    # print(runs.to_string(index=False))
 
     # runs = list_runs_for_ticker(
     #     OUTPUT_DIR / "summary_results.csv",
@@ -1440,54 +1449,51 @@ if __name__ == "__main__":
     #     output_subdir="best_run_charts_from_csv",
     # )
 
-pred_df = pd.read_csv(
-    "artifacts/prob_tables_batch/row_level_predictions.csv"
-)
+# pred_df = load_row_predictions()
+# )
 
-df = pd.read_csv("artifacts/prob_tables_batch/summary_results.csv")
+# df = load_sum_result()
 
-cols = [
-    "ticker",
-    "period",
-    "horizon",
-    "pred_mean_future_Growth",
-    "pred_mean_future_Sideways",
-    "pred_mean_future_Decline",
-    "signal_mean_future_Growth",
-    "signal_mean_future_Decline",
-    "signal_mean_future_Sideways"
+# cols = [
+#     "ticker",
+#     "period",
+#     "horizon",
+#     "pred_mean_future_Growth",
+#     "pred_mean_future_Sideways",
+#     "pred_mean_future_Decline",
+#     "signal_mean_future_Growth",
+#     "signal_mean_future_Decline",
+#     "signal_mean_future_Sideways"
 
-]
+# ]
 
-print(df[cols].sort_values("pred_mean_future_Growth", ascending=False).head(20))
+# print(df[cols].sort_values("pred_mean_future_Growth", ascending=False).head(20))
 
-pred_df = pd.read_csv(
-    "artifacts/prob_tables_batch/row_level_predictions.csv"
-)
+# pred_df = load_row_predictions()
 
-df = pred_df[pred_df["ticker"] == "AAPL"]
+# df = pred_df[pred_df["ticker"] == "AAPL"]
 
-plot_probability_calibration(
-    df,
-    prob_col="P_Growth",
-    target_col="future_ret",
-    bins=10,
-    title="AAPL probability calibration"
-)
+# plot_probability_calibration(
+#     df,
+#     prob_col="P_Growth",
+#     target_col="future_ret",
+#     bins=10,
+#     title="AAPL probability calibration"
+# )
 
-# probability vs frequency
-plot_probability_vs_frequency(
-    df,
-    prob_col="P_Growth",
-    true_col="true_class",
-    bins=10
-)
+# # probability vs frequency
+# plot_probability_vs_frequency(
+#     df,
+#     prob_col="P_Growth",
+#     true_col="true_class",
+#     bins=10
+# )
 
-plot_decile_return(
-    df,
-    prob_col="P_Growth",
-    target_col="future_ret",
-    n_bins=10,
-    title="AAPL decile return plot"
-)
+# plot_decile_return(
+#     df,
+#     prob_col="P_Growth",
+#     target_col="future_ret",
+#     n_bins=10,
+#     title="AAPL decile return plot"
+# )
 

@@ -1434,14 +1434,14 @@ def plot_decile_return(
 if __name__ == "__main__":
     main()
 
-    runs = list_runs_all_tickers(
-        SUMMARY_CSV_PATH,
-        sort_by="corr_p_growth_future_ret",
-        ascending=False,
-        top_n=30,
-    )
+    # runs = list_runs_all_tickers(
+    #     SUMMARY_CSV_PATH,
+    #     sort_by="corr_p_growth_future_ret",
+    #     ascending=False,
+    #     top_n=30,
+    # )
 
-    print(runs.to_string(index=False))
+    # print(runs.to_string(index=False))
 
     # runs = list_runs_for_ticker(
     #     SUMMARY_CSV_PATH",
